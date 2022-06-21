@@ -36,11 +36,11 @@ The get command returns a application/json with new Imageurls and focus point.
 
 ```json
 {
-  urls: {
+  "urls": {
     "1280-720": "http://...(landscape)",
     "720-1280": "http://...(portrait)"
   },
-  focus: {
+  "focus": {
     "x": 0.5, "y": 0.5
   }
 }
@@ -53,11 +53,11 @@ The get command returns a application/json with new Imageurls and focus point.
 
 ```json
 {
-  urls: {
+  "urls": {
     "1280-720": "http://...(landscape)",
     "720-1280": "http://...(portrait)"
   },
-  focus: {
+  "focus": {
     "x": 0.75, "y": 0.25
   }
 }
@@ -69,17 +69,17 @@ The get command returns a application/json with new Imageurls and focus point.
 
 ```json
 {
-  urls: {
+  "urls": {
     "1280-720": "http://...(landscape)",
     "720-1280": "http://...(portrait)"
   },
-  focus: {
+  "focus": {
     "x": 0.2,
     "y": 0.8
   },
-  tags: [
+  "tags": [
     { "label": "person","rate": 0.1,"xpos": 0.9,"ypos": 0.5 }
   ],
-  yolo: "http://...(landscape)"
+  "yolo": "http://...(landscape)"
 }
 ```
