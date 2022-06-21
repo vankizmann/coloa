@@ -4,9 +4,9 @@ Start webserver with:
 
 ```uvicorn main:app --reload```
 
-##How use API:
+# How use API:
 
-**http://127.0.0.1:8000/run**
+## http://127.0.0.1:8000/run
 
 The run command just returns a plain image with given query.
 
@@ -21,11 +21,14 @@ http://127.0.0.1:8000/run?url=https://source.unsplash.com/random&size=auto,heigh
 *Image with auto width and 600px height*
 
 
+
 http://127.0.0.1:8000/run?url=https://source.unsplash.com/random
 
 *Same dimension but with image compression*
 
-**http://127.0.0.1:8000/get**
+
+
+## http://127.0.0.1:8000/get
 
 The get command returns a application/json with new Imageurls and focus point.
 
