@@ -2,13 +2,15 @@ import cv2 as cv
 import numpy as np
 import os as os
 import re as regex
-from PIL import Image as pimg, ImageFile as pimgfile, ImageEnhance as pimgenhance
 import mozjpeg_lossless_optimization as mopzjpeg
+from fastapi import HTTPException
+from PIL import Image as pimg, ImageFile as pimgfile, ImageEnhance as pimgenhance
 
 class ImageHelper:
 
     @staticmethod
     def resize(capture, size=[None, None]):
+        # Get source dimensions
         src = np.array(capture.shape[:2])
 
         if ( isinstance(size, int) and src[0] > src[1] ):
@@ -29,13 +31,22 @@ class ImageHelper:
         if ( size[1] != None ):
             dist = [int(src[1] * size[1] / float(src[0])), size[1]]
 
+        if ( dist[0] > size[0] ):
+            dist = [size[0], int(src[0] * size[0] / float(src[1]))]
+
+        if ( dist[1] > size[1] ):
+            dist = [int(src[1] * size[1] / float(src[0])), size[1]]
+
         cache = pimg.fromarray(capture.copy()).resize(dist)
-#         cache = cv.resize(capture.copy(), dist)
 
         return np.asarray(cache)
 
     @staticmethod
     def crop_resize(capture, size=[1920,1080], focus=[0.5,0.5]):
+
+        if ( size[0] == None or size[1] == None ):
+            raise HTTPException(status_code=500, detail='For crop resize width and height are required')
+
         # Get original sizes
         src = np.array(capture.shape[:2])
 

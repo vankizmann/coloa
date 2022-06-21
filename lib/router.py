@@ -2,6 +2,9 @@ from fastapi.responses import FileResponse
 from lib.file import File
 import re as regex
 import numpy as np
+import glob as glob
+import os as os
+import time as time
 
 class Router:
 
@@ -9,6 +12,9 @@ class Router:
 
     @staticmethod
     def run(url, size):
+        # Clean files
+        Router.clean()
+
         # Initiate file
         file = File(url)
 
@@ -27,6 +33,9 @@ class Router:
 
     @staticmethod
     def get(url, focus, size, detect):
+        # Clean files
+        Router.clean()
+
         # Initiate file
         file = File(url)
 
@@ -108,3 +117,45 @@ class Router:
             size[1] = round(float(size[1]), 2)
 
         return size
+
+    @staticmethod
+    def clean():
+
+        for path in glob.glob('./tmp/*', recursive=False):
+            if ( Router.is_junk(path) ):
+                os.remove(path)
+
+        for path in glob.glob('./dist/**/*.*', recursive=True):
+            if ( Router.is_junk(path) ):
+                os.remove(path)
+
+        for path in glob.glob('./dist/*', recursive=False):
+            if ( Router.is_empty(path) ):
+                os.rmdir(path)
+
+
+    @staticmethod
+    def is_junk(path):
+        # Get current time
+        now = time.time()
+
+        # Wildcard for gitignore
+        if ( os.path.basename(path) == '.gitignore' ):
+            return false
+
+        # Wildcard for folders
+        if ( os.path.isdir(path) == True ):
+            return false
+
+        # Returns if file is older than an hour
+        return os.stat(path).st_mtime < now - 60*60
+
+
+    @staticmethod
+    def is_empty(path):
+
+        # Wildcard for files
+        if ( os.path.isfile(path) == True ):
+            return false
+
+        return len(os.listdir(path)) == 0

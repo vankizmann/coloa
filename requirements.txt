@@ -1,4 +1,8 @@
 fastapi
+uvicorn
+gunicorn
+requests
+python-magic
 numpy
 pillow
 opencv-python
