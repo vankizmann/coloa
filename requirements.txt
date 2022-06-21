@@ -1,0 +1,6 @@
+fastapi
+numpy
+pillow
+opencv-python
+mozjpeg-lossless-optimization
+torch
