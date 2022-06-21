@@ -121,17 +121,17 @@ class Router:
     @staticmethod
     def clean():
 
-        for path in glob.glob('./tmp/*', recursive=False):
-            if ( Router.is_junk(path) ):
-                os.remove(path)
-
-        for path in glob.glob('./dist/**/*.*', recursive=True):
+        for path in glob.glob('./temp/*', recursive=False):
             if ( Router.is_junk(path) ):
                 os.remove(path)
 
         for path in glob.glob('./dist/*', recursive=False):
             if ( Router.is_empty(path) ):
                 os.rmdir(path)
+
+        for path in glob.glob('./dist/**/*.*', recursive=True):
+            if ( Router.is_junk(path) ):
+                os.remove(path)
 
 
     @staticmethod
@@ -141,11 +141,15 @@ class Router:
 
         # Wildcard for gitignore
         if ( os.path.basename(path) == '.gitignore' ):
-            return false
+            return False
 
         # Wildcard for folders
         if ( os.path.isdir(path) == True ):
-            return false
+            return False
+
+        # Wildcard for files
+        if ( os.path.isfile(path) == False ):
+            return False
 
         # Returns if file is older than an hour
         return os.stat(path).st_mtime < now - 60*60
@@ -153,9 +157,18 @@ class Router:
 
     @staticmethod
     def is_empty(path):
+        # Get current time
+        now = time.time()
 
         # Wildcard for files
         if ( os.path.isfile(path) == True ):
-            return false
+            return False
 
-        return len(os.listdir(path)) == 0
+        # Wildcard for files
+        if ( os.path.isdir(path) == False ):
+            return False
+
+        if ( len(os.listdir(path)) != 0 ):
+            return False
+
+        return os.stat(path).st_mtime < now - 60*60

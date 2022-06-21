@@ -31,10 +31,10 @@ class ImageHelper:
         if ( size[1] != None ):
             dist = [int(src[1] * size[1] / float(src[0])), size[1]]
 
-        if ( dist[0] > size[0] ):
+        if ( size[0] != None and dist[0] > size[0] ):
             dist = [size[0], int(src[0] * size[0] / float(src[1]))]
 
-        if ( dist[1] > size[1] ):
+        if ( size[1] != None and dist[1] > size[1] ):
             dist = [int(src[1] * size[1] / float(src[0])), size[1]]
 
         cache = pimg.fromarray(capture.copy()).resize(dist)
