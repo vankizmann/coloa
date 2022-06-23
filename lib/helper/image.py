@@ -10,6 +10,14 @@ class ImageHelper:
 
     @staticmethod
     def resize(capture, size=[None, None]):
+
+        # Downscale size if src is smaller
+        size = ImageHelper.downscaled_size(capture, size)
+
+        # Crop resize if crop is true
+        if ( size[0] != None and size[1] != None and crop == True ):
+            return ImageHelper.crop_resize(capture, size)
+
         # Get source dimensions
         src = np.array(capture.shape[:2])
 
@@ -46,6 +54,9 @@ class ImageHelper:
 
         if ( size[0] == None or size[1] == None ):
             return ImageHelper.resize(capture, size)
+
+        # Downscale size if src is smaller
+        size = ImageHelper.downscaled_size(capture, size)
 
         # Get original sizes
         src = np.array(capture.shape[:2])
@@ -97,28 +108,39 @@ class ImageHelper:
         # Calculate possible aspect ratios for the source image
         aspect = (1/size[0]*size[1], 1/size[1]*size[0])
 
+        if ( aspect[0] == aspect[1] ):
 
-        if ( aspect[0] >= aspect[1] ):
+            arun = int(src[0]*aspect[0])
+            brun = int(src[1]*aspect[1])
 
-            arun = int(src[1]*aspect[1])
-            brun = int(src[0]*aspect[0])
+            if ( src[0] >= src[1] ):
+                dist = (brun, src[1])
 
-            if ( arun > src[0] ):
+            else:
+                dist = (src[0], arun)
+
+
+        elif ( aspect[0] <= aspect[1] ):
+
+            arun = int(src[0]*aspect[0])
+            brun = int(src[0]*aspect[1])
+
+            if ( brun <= src[1] ):
                 dist = (src[0], brun)
 
             else:
-                dist = (arun, src[1])
+                dist = (src[0], arun)
 
         else:
 
-            arun = int(src[1]*aspect[1])
-            brun = int(src[0]*aspect[0])
+            arun = int(src[1]*aspect[0])
+            brun = int(src[1]*aspect[1])
 
-            if ( arun > src[1] ):
-                dist = (src[0], brun)
+            if ( brun <= src[0] ):
+                dist = (brun, src[1])
 
             else:
-                dist = (src[1], arun)
+                dist = (arun, src[1])
 
         # Calculate resized boundry boxes
         resized = np.array([
@@ -131,21 +153,25 @@ class ImageHelper:
             resized[0,1] -= resized[0,0]
             resized[0,0] = 0
 
+        print('resized s1', resized[0])
         # Normalize if first height is bigger than source size
         if (resized[0,1] > src[0]):
             resized[0,0] -= resized[0,1] - src[0]
             resized[0,1] = src[0]
 
+        print('resized s2', resized[0], src[0])
         # Normalize if first width is smaller than zero
         if (resized[1,0] < 0):
             resized[1,1] -= resized[1,0]
             resized[1,0] = 0
 
+        print('resized s3', resized[1])
         # Normalize if first width is bigger than source size
         if (resized[1,1] > src[1]):
             resized[1,0] -= resized[1,1] - src[1]
             resized[1,1] = src[1]
 
+        print('resized s4', resized[1])
 
         crop = (
             resized[1,0], resized[0,0],
@@ -156,9 +182,50 @@ class ImageHelper:
         cache = cache.crop(crop)
 
         # Resize image to target dimensions
-        cache = cache.resize([size[1], size[0]])
+#         cache = cache.resize([size[1], size[0]])
 
         return np.asarray(cache)
+
+
+    @staticmethod
+    def downscaled_size(capture, size):
+
+        src = np.array(capture.shape[:2])
+
+        if ( size[0] == None ):
+            size[0] = src[1]
+
+            return size
+
+        if ( size[1] == None ):
+            size[1] = src[0]
+
+            return size
+
+        if ( size[0] <= src[1] and size[1] <= src[0]):
+            return size
+
+        # Calculate possible aspect ratios for the source image
+        aspect = (1/size[0]*size[1], 1/size[1]*size[0])
+        aspect = (1/size[0]*size[1], 1/size[1]*size[0])
+
+        if ( aspect[0] <= aspect[1] ):
+
+            if ( size[1] > src[0] ):
+                size = (int(src[1]*aspect[0]), src[1])
+
+            elif ( size[0] > src[1] ):
+                size = (src[1], int(src[1]*aspect[0]))
+
+        else:
+
+            if ( size[1] > src[0] ):
+                size = (int(src[0]*aspect[1]), src[0])
+
+            elif ( size[0] > src[1] ):
+                size = (src[1], int(src[0]*aspect[1]))
+
+        return size
 
     @staticmethod
     def optimize(path, mime='none'):

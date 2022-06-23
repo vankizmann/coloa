@@ -11,7 +11,7 @@ class Router:
     url = 'https://coloa.vanki.de'
 
     @staticmethod
-    def run(url, size):
+    def size(url, size):
         # Clean files
         Router.clean()
 
@@ -30,6 +30,45 @@ class Router:
         # Return plain file
         return FileResponse(path)
 
+    @staticmethod
+    def crop(url, size, focus):
+        # Clean files
+        Router.clean()
+
+        # Initiate file
+        file = File(url)
+
+        # Initiate image
+        image = file.convert().init()
+
+        # Convert focus point
+        focus = Router.param(focus, data_type='float')
+
+        # Get calculated focus point
+        if ( focus[0] == None and focus[1] == None ):
+            focus = image.focus()
+
+        # Fix x auto
+        if ( focus[0] == None ):
+            focus[0] = 0.5
+
+        # Fix y auto
+        if ( focus[1] == None ):
+            focus[1] = 0.5
+
+        print(focus)
+
+        # Convert size
+        size = Router.param(size, data_type='int')
+
+        # Resize file and return path
+        path = image.crop_resize(size=size, focus=focus)
+
+        # Clean file
+        file.clean()
+
+        # Return plain file
+        return FileResponse(path)
 
     @staticmethod
     def get(url, focus, size, detect):
@@ -53,8 +92,16 @@ class Router:
         focus = Router.param(focus, data_type='float')
 
         # Get calculated focus point
-        if ( focus[0] == None or focus[1] == None ):
+        if ( focus[0] == None and focus[1] == None ):
             focus = image.focus()
+
+        # Fix x auto
+        if ( focus[0] == None ):
+            focus[0] = 0.5
+
+        # Fix y auto
+        if ( focus[1] == None ):
+            focus[1] = 0.5
 
         # Convert sizes
         sizes = Router.params(size, data_type='int')
@@ -98,6 +145,9 @@ class Router:
         if ( isinstance(size, str) ):
             size = regex.split('[,:]', size)
 
+        if ( len(size) == 1 ):
+            size = [size[0], fallback]
+
         if ( size[0] == 'auto' and fix_none == True ):
             size[0] = fallback
 
@@ -113,7 +163,7 @@ class Router:
         if ( isinstance(size[0], str) and data_type == 'float' ):
             size[0] = round(float(size[0]), 2)
 
-        if ( isinstance(size[1], str) and result_type == 'float' ):
+        if ( isinstance(size[1], str) and data_type == 'float' ):
             size[1] = round(float(size[1]), 2)
 
         return size

@@ -7,16 +7,17 @@ Start webserver with:
 <br>
 # How use API:
 
-### *http://127.0.0.1:8000/run*
+### *http://127.0.0.1:8000/(crop|size)*
 The run command just returns a plain image with given query.
 <br>
 <br>
-```.../run?url=https://source.unsplash.com/random&size=600,auto```
+```.../size?url=https://source.unsplash.com/random&size=600,auto```
+```.../crop?url=https://source.unsplash.com/random&size=600,600```
 
-*Image with 600px width and auto height*
+*Image with 600px width and auto/600 height*
 <br>
 <br>
-```.../run?url=https://source.unsplash.com/random```
+```.../size?url=https://source.unsplash.com/random```
 
 *Same dimension but with image compression*
 <br>
