@@ -5,6 +5,7 @@ import magic as magic
 import re as regex
 import os as os
 from lib.handler.image import ImageHandler
+from lib.handler.pdf import PdfHandler
 from lib.handler.video import VideoHandler
 from fastapi import HTTPException
 
@@ -17,7 +18,7 @@ class File:
 
     def temp_name(self):
 
-        if hasattr(self, '_temp_name'):
+        if ( hasattr(self, '_temp_name') and self._temp_name != None ):
             return self._temp_name
 
         self._temp_name = str(uuid.uuid4())
@@ -31,7 +32,7 @@ class File:
 
     def dist_name(self):
 
-        if hasattr(self, '_dist_name'):
+        if ( hasattr(self, '_dist_name') and self._dist_name != None ):
             return self._dist_name
 
         self._dist_name = self.temp_name()
@@ -67,7 +68,7 @@ class File:
 
     def mime_type(self):
 
-        if hasattr(self, '_mime_type'):
+        if ( hasattr(self, '_mime_type') and self._mime_type != None ):
             return self._mime_type
 
         reader = magic.Magic(mime=True, uncompress=True)
@@ -85,10 +86,21 @@ class File:
         if ( regex.search('^image\/(jpe?g|png)$', mime_type) != None ):
             return ImageHandler(self)
 
-        if ( regex.search('^image\/(mp4|webm)$', mime_type) != None ):
-            return VideoHandler(self)
+        if ( regex.search('^application\/pdf$', mime_type) != None ):
+            return PdfHandler(self)
 
-        raise HTTPException(status_code=500, detail='Mime "' + mtype + '" not supported')
+#         if ( regex.search('^image\/(mp4|webm)$', mime_type) != None ):
+#             return VideoHandler(self)
+
+        raise HTTPException(status_code=500, detail='Mime "' + mime_type + '" not supported')
+
+
+    def refresh(self):
+
+        self._mime_type = None
+
+        return self
+
 
     def clean(self):
         os.remove(self.temp_path())

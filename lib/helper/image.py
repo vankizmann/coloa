@@ -45,7 +45,7 @@ class ImageHelper:
     def crop_resize(capture, size=[1920,1080], focus=[0.5,0.5]):
 
         if ( size[0] == None or size[1] == None ):
-            raise HTTPException(status_code=500, detail='For crop resize width and height are required')
+            return ImageHelper.resize(capture, size)
 
         # Get original sizes
         src = np.array(capture.shape[:2])

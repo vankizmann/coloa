@@ -5,7 +5,7 @@ from lib.helper.image import ImageHelper
 class BasicHandler:
 
     def __init__(self, file):
-        self.file = file
+        self.file = file.refresh()
 
     def init(self):
         # Initialize cv capture
