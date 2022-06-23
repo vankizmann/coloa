@@ -14,10 +14,6 @@ class ImageHelper:
         # Downscale size if src is smaller
         size = ImageHelper.downscaled_size(capture, size)
 
-        # Crop resize if crop is true
-        if ( size[0] != None and size[1] != None and crop == True ):
-            return ImageHelper.crop_resize(capture, size)
-
         # Get source dimensions
         src = np.array(capture.shape[:2])
 
@@ -70,29 +66,29 @@ class ImageHelper:
         # Convert for pillow
         cache = pimg.fromarray(capture.copy())
 
-        for key in range(len(size)) :
-            upscale = False
-
-            # If requested size is bigger than original size
-            # start upscaling process
-            if ( size[key] > src[key] ):
-                upscale = True
-
-            ratio = 1
-
-            # If upscale is enabled calculate the required ratio
-            if ( upscale ) :
-                ratio = 1 / src[key] * size[key]
-
-            # Resize image if all target sizes are to big for image
-            if ( size[0] > src[0] or size[1] > src[1] ):
-                src[0] = int(src[0] * ratio)
-                src[1] = int(src[1] * ratio)
-
-        # target 900x1280 source 800x1200
-
-        # Resize capture accordingly to the target size
-        cache = cache.resize((src[1], src[0]))
+#         for key in range(len(size)) :
+#             upscale = False
+#
+#             # If requested size is bigger than original size
+#             # start upscaling process
+#             if ( size[key] > src[key] ):
+#                 upscale = True
+#
+#             ratio = 1
+#
+#             # If upscale is enabled calculate the required ratio
+#             if ( upscale ) :
+#                 ratio = 1 / src[key] * size[key]
+#
+#             # Resize image if all target sizes are to big for image
+#             if ( size[0] > src[0] or size[1] > src[1] ):
+#                 src[0] = int(src[0] * ratio)
+#                 src[1] = int(src[1] * ratio)
+#
+#         # target 900x1280 source 800x1200
+#
+#         # Resize capture accordingly to the target size
+#         cache = cache.resize((src[1], src[0]))
 
         # Sharpen kernel
         kernel = np.array([
@@ -105,8 +101,14 @@ class ImageHelper:
         if ( tmp[0] < src[0] or tmp[1] < src[1] ):
             cache = pimgenhance.Sharpness(cache).enhance(0.5)
 
+        print(src, tmp)
         # Calculate possible aspect ratios for the source image
         aspect = (1/size[0]*size[1], 1/size[1]*size[0])
+
+        xrun = int(src[0]*aspect[0])
+        yrun = int(src[1]*aspect[1])
+
+        print(xrun, yrun)
 
         if ( aspect[0] == aspect[1] ):
 
@@ -119,28 +121,35 @@ class ImageHelper:
             else:
                 dist = (src[0], arun)
 
-
-        elif ( aspect[0] <= aspect[1] ):
+        elif ( xrun <= src[1] ):
 
             arun = int(src[0]*aspect[0])
             brun = int(src[0]*aspect[1])
 
-            if ( brun <= src[1] ):
-                dist = (src[0], brun)
-
-            else:
+            if ( arun <= src[1] ):
+                print('a', arun, brun, src[1])
                 dist = (src[0], arun)
 
-        else:
+            else:
+                dist = (src[0], brun)
+
+        elif ( yrun <= src[0] ):
 
             arun = int(src[1]*aspect[0])
             brun = int(src[1]*aspect[1])
 
             if ( brun <= src[0] ):
+                print('c')
                 dist = (brun, src[1])
 
             else:
+                print('d')
                 dist = (arun, src[1])
+
+        else :
+            raise HTTPException(status_code=500, detail='No resize operation possible')
+
+        print('dist', dist)
 
         # Calculate resized boundry boxes
         resized = np.array([
@@ -153,25 +162,20 @@ class ImageHelper:
             resized[0,1] -= resized[0,0]
             resized[0,0] = 0
 
-        print('resized s1', resized[0])
         # Normalize if first height is bigger than source size
         if (resized[0,1] > src[0]):
             resized[0,0] -= resized[0,1] - src[0]
             resized[0,1] = src[0]
 
-        print('resized s2', resized[0], src[0])
         # Normalize if first width is smaller than zero
         if (resized[1,0] < 0):
             resized[1,1] -= resized[1,0]
             resized[1,0] = 0
 
-        print('resized s3', resized[1])
         # Normalize if first width is bigger than source size
         if (resized[1,1] > src[1]):
             resized[1,0] -= resized[1,1] - src[1]
             resized[1,1] = src[1]
-
-        print('resized s4', resized[1])
 
         crop = (
             resized[1,0], resized[0,0],
@@ -182,7 +186,7 @@ class ImageHelper:
         cache = cache.crop(crop)
 
         # Resize image to target dimensions
-#         cache = cache.resize([size[1], size[0]])
+        cache = cache.resize([size[1], size[0]])
 
         return np.asarray(cache)
 
@@ -190,15 +194,17 @@ class ImageHelper:
     @staticmethod
     def downscaled_size(capture, size):
 
+        return size
+
         src = np.array(capture.shape[:2])
 
         if ( size[0] == None ):
-            size[0] = src[1]
+            size[0] = src[0]
 
             return size
 
         if ( size[1] == None ):
-            size[1] = src[0]
+            size[1] = src[1]
 
             return size
 
@@ -212,18 +218,18 @@ class ImageHelper:
         if ( aspect[0] <= aspect[1] ):
 
             if ( size[1] > src[0] ):
-                size = (int(src[1]*aspect[0]), src[1])
+                size = (src[1], int(src[1]*aspect[0]))
 
             elif ( size[0] > src[1] ):
-                size = (src[1], int(src[1]*aspect[0]))
+                size = (int(src[1]*aspect[0]), src[1])
 
         else:
 
             if ( size[1] > src[0] ):
-                size = (int(src[0]*aspect[1]), src[0])
+                size = (src[0], int(src[0]*aspect[1]))
 
             elif ( size[0] > src[1] ):
-                size = (src[1], int(src[0]*aspect[1]))
+                size = (int(src[0]*aspect[1]), src[1])
 
         return size
 
