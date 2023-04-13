@@ -60,7 +60,10 @@ class ImageHandler(BasicHandler):
         ImageHelper.optimize(path, mime_type)
 
         # Convert to webp format
-        #ImageHelper.webp(path)
+        try:
+            path = ImageHelper.webp(path)
+        except:
+            print('Skipping webp convertion')
 
         return path
 
@@ -91,7 +94,10 @@ class ImageHandler(BasicHandler):
         ImageHelper.optimize(path, mime_type)
 
         # Convert to webp format
-        #ImageHelper.webp(path)
+        try:
+            path = ImageHelper.webp(path)
+        except:
+            print('Skipping webp convertion')
 
         return path
 

@@ -1,8 +1,11 @@
 from typing import List, Union
 from fastapi import FastAPI, Query
+from fastapi.middleware.gzip import GZipMiddleware
 from lib.router import Router
 
 app = FastAPI()
+
+# app.add_middleware(GZipMiddleware, minimum_size=100)
 
 @app.get('/get')
 def route_get(url: Union[str], detect: Union[bool] = False, focus: Union[str, None] = None, size: Union[List[str], None] = Query(default=None)):

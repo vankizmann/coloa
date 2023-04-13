@@ -5,13 +5,14 @@ import re as regex
 import mozjpeg_lossless_optimization as mopzjpeg
 from fastapi import HTTPException
 from PIL import Image as pimg, ImageFile as pimgfile, ImageEnhance as pimgenhance
+from PIL.WebPImagePlugin import Image as wimg
 
 class ImageHelper:
 
     @staticmethod
     def resize(capture, size=[None, None]):
 
-        # Downscale size if src is smaller
+        # War mal hier?!
         size = ImageHelper.downscaled_size(capture, size)
 
         # Get source dimensions
@@ -29,6 +30,9 @@ class ImageHelper:
         if ( size[0] == None and size[1] == None ):
             return capture
 
+        # Downscale size if src is smaller
+        size = ImageHelper.downscaled_size(capture, size)
+
         if ( size[0] != None ):
             dist = [size[0], int(src[0] * size[0] / float(src[1]))]
 
@@ -39,7 +43,9 @@ class ImageHelper:
             dist = [size[0], int(src[0] * size[0] / float(src[1]))]
 
         if ( size[1] != None and dist[1] > size[1] ):
-            dist = [int(src[1] * size[1] / float(src[0])), size[1]]
+            dist = [size[0], int(src[0] * size[0] / float(src[1]))]
+
+        #print(size)
 
         cache = pimg.fromarray(capture.copy()).resize(dist)
 
@@ -66,29 +72,29 @@ class ImageHelper:
         # Convert for pillow
         cache = pimg.fromarray(capture.copy())
 
-#         for key in range(len(size)) :
-#             upscale = False
-#
-#             # If requested size is bigger than original size
-#             # start upscaling process
-#             if ( size[key] > src[key] ):
-#                 upscale = True
-#
-#             ratio = 1
-#
-#             # If upscale is enabled calculate the required ratio
-#             if ( upscale ) :
-#                 ratio = 1 / src[key] * size[key]
-#
-#             # Resize image if all target sizes are to big for image
-#             if ( size[0] > src[0] or size[1] > src[1] ):
-#                 src[0] = int(src[0] * ratio)
-#                 src[1] = int(src[1] * ratio)
-#
-#         # target 900x1280 source 800x1200
-#
-#         # Resize capture accordingly to the target size
-#         cache = cache.resize((src[1], src[0]))
+        for key in range(len(size)) :
+            upscale = False
+
+            # If requested size is bigger than original size
+            # start upscaling process
+            if ( size[key] > src[key] ):
+                upscale = True
+
+            ratio = 1
+
+            # If upscale is enabled calculate the required ratio
+            if ( upscale ) :
+                ratio = 1 / src[key] * size[key]
+
+            # Resize image if all target sizes are to big for image
+            if ( size[0] > src[0] or size[1] > src[1] ):
+                src[0] = int(src[0] * ratio)
+                src[1] = int(src[1] * ratio)
+
+        # target 900x1280 source 800x1200
+
+        # Resize capture accordingly to the target size
+        cache = cache.resize((src[1], src[0]))
 
         # Sharpen kernel
         kernel = np.array([
@@ -101,14 +107,12 @@ class ImageHelper:
         if ( tmp[0] < src[0] or tmp[1] < src[1] ):
             cache = pimgenhance.Sharpness(cache).enhance(0.5)
 
-        print(src, tmp)
         # Calculate possible aspect ratios for the source image
         aspect = (1/size[0]*size[1], 1/size[1]*size[0])
 
         xrun = int(src[0]*aspect[0])
         yrun = int(src[1]*aspect[1])
 
-        print(xrun, yrun)
 
         if ( aspect[0] == aspect[1] ):
 
@@ -127,7 +131,6 @@ class ImageHelper:
             brun = int(src[0]*aspect[1])
 
             if ( arun <= src[1] ):
-                print('a', arun, brun, src[1])
                 dist = (src[0], arun)
 
             else:
@@ -139,17 +142,14 @@ class ImageHelper:
             brun = int(src[1]*aspect[1])
 
             if ( brun <= src[0] ):
-                print('c')
                 dist = (brun, src[1])
 
             else:
-                print('d')
                 dist = (arun, src[1])
 
         else :
             raise HTTPException(status_code=500, detail='No resize operation possible')
 
-        print('dist', dist)
 
         # Calculate resized boundry boxes
         resized = np.array([
@@ -194,8 +194,6 @@ class ImageHelper:
     @staticmethod
     def downscaled_size(capture, size):
 
-        return size
-
         src = np.array(capture.shape[:2])
 
         if ( size[0] == None ):
@@ -213,23 +211,12 @@ class ImageHelper:
 
         # Calculate possible aspect ratios for the source image
         aspect = (1/size[0]*size[1], 1/size[1]*size[0])
-        aspect = (1/size[0]*size[1], 1/size[1]*size[0])
 
-        if ( aspect[0] <= aspect[1] ):
+        if ( size[0] >= src[1] and size[0] > src[1] ):
+            size = (src[1], int(src[1]*aspect[0]))
 
-            if ( size[1] > src[0] ):
-                size = (src[1], int(src[1]*aspect[0]))
-
-            elif ( size[0] > src[1] ):
-                size = (int(src[1]*aspect[0]), src[1])
-
-        else:
-
-            if ( size[1] > src[0] ):
-                size = (src[0], int(src[0]*aspect[1]))
-
-            elif ( size[0] > src[1] ):
-                size = (int(src[0]*aspect[1]), src[1])
+        if ( size[1] >= src[0] and size[1] > src[0] ):
+            size = (int(src[0]*aspect[1]), src[0])
 
         return size
 
@@ -262,13 +249,15 @@ class ImageHelper:
     @staticmethod
     def webp(path):
         # Load file with Pillow
-        capture = pimg.open(path)
+        capture = wimg.open(path)
 
         # Change file ending
-        path = regex.sub('\.(.*?)$', '.webp', path)
+        path = regex.sub('\.([^\.]+)$', '.webp', path)
 
         # Save image with given quality
-        capture.save(path, optimize=True, progressive=True, quality="medium", format="webp")
+        capture.save(path, optimize=True, progressive=True, quality=90, format="webp")
 
         # Output size
         print(int(os.path.getsize(path)/1024), 'kb')
+
+        return path

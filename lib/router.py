@@ -28,7 +28,7 @@ class Router:
         file.clean()
 
         # Return plain file
-        return FileResponse(path)
+        return FileResponse(path)#, media_type="image/webp")
 
     @staticmethod
     def crop(url, size, focus):
@@ -56,8 +56,6 @@ class Router:
         if ( focus[1] == None ):
             focus[1] = 0.5
 
-        print(focus)
-
         # Convert size
         size = Router.param(size, data_type='int')
 
@@ -67,8 +65,7 @@ class Router:
         # Clean file
         file.clean()
 
-        # Return plain file
-        return FileResponse(path)
+        return FileResponse(path)#, media_type="image/webp")
 
     @staticmethod
     def get(url, focus, size, detect):
