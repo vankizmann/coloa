@@ -13,7 +13,7 @@ class ImageHelper:
     def resize(capture, size=[None, None]):
 
         # War mal hier?!
-        size = ImageHelper.downscaled_size(capture, size)
+        # size = ImageHelper.downscaled_size(capture, size)
 
         # Get source dimensions
         src = np.array(capture.shape[:2])
@@ -43,9 +43,7 @@ class ImageHelper:
             dist = [size[0], int(src[0] * size[0] / float(src[1]))]
 
         if ( size[1] != None and dist[1] > size[1] ):
-            dist = [size[0], int(src[0] * size[0] / float(src[1]))]
-
-        #print(size)
+            dist = [int(src[1] * size[1] / float(src[0])), size[1]]
 
         cache = pimg.fromarray(capture.copy()).resize(dist)
 
@@ -247,7 +245,7 @@ class ImageHelper:
         print(int(os.path.getsize(path)/1024), 'kb')
 
     @staticmethod
-    def webp(path):
+    def webp(path, quality=100):
         # Load file with Pillow
         capture = wimg.open(path)
 
@@ -255,7 +253,7 @@ class ImageHelper:
         path = regex.sub('\.([^\.]+)$', '.webp', path)
 
         # Save image with given quality
-        capture.save(path, optimize=True, progressive=True, quality=90, format="webp")
+        capture.save(path, optimize=True, progressive=True, quality=quality, format="webp")
 
         # Output size
         print(int(os.path.getsize(path)/1024), 'kb')

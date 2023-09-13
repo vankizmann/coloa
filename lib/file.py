@@ -4,10 +4,11 @@ import mimetypes as mimetype
 import magic as magic
 import re as regex
 import os as os
+import shutil as shutil
 from lib.handler.image import ImageHandler
 from lib.handler.pdf import PdfHandler
 from lib.handler.video import VideoHandler
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 
 class File:
 
@@ -57,12 +58,22 @@ class File:
 
 
     def fetch(self):
-        res = req.get(self.url)
 
-        if ( res.status_code != 200 ):
-            raise HTTPException(status_code=500, detail='File cannot be retrieved: ' + str(res.status_code))
+        if ( isinstance(self.url, str) == False ) :
 
-        open(self.temp_path(), 'wb').write(res.content)
+            with open(self.temp_path(), "wb") as buffer:
+                shutil.copyfileobj(self.url.file, buffer)
+
+            self.url = None
+
+        else :
+
+            res = req.get(self.url)
+
+            if ( res.status_code != 200 ):
+                raise HTTPException(status_code=500, detail='File cannot be retrieved: ' + str(res.status_code))
+
+            open(self.temp_path(), 'wb').write(res.content)
 
         return self
 

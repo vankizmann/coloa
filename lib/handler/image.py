@@ -35,15 +35,17 @@ class ImageHandler(BasicHandler):
         return self.detect.focus()
 
     def resize_many(self, sizes=[]):
-            # URL Buffer
-            urls = {}
 
-            for size in sizes:
-                urls[self.size_name(size)] = self.resize(size)
+        # URL Buffer
+        urls = {}
 
-            return urls
+        for size in sizes:
+            urls[self.size_name(size)] = self.resize(size)
+
+        return urls
 
     def resize(self, size=[1920,1080]):
+
         # Get size filepath
         path = self.size_path(size)
 
@@ -101,5 +103,21 @@ class ImageHandler(BasicHandler):
 
         return path
 
+    def webp(self, quality=100):
+        # Get size filepath
+        path = self.name_path('webp')
 
+        # Read mime type
+        mime_type = self.file.mime_type()
+
+        # Save image to filesystem
+        cv.imwrite(path, self.capture)
+
+        # Convert to webp format
+        try:
+            path = ImageHelper.webp(path, quality)
+        except:
+            print('Skipping webp convertion')
+
+        return path
 

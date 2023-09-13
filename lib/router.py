@@ -11,6 +11,26 @@ class Router:
     url = 'https://coloa.vanki.de'
 
     @staticmethod
+    def webp(url, quality):
+        # Clean files
+        Router.clean()
+
+        # Initiate file
+        file = File(url)
+
+        if ( quality == None ) :
+            quality = 100
+
+        # Resize file and return path
+        path = file.convert().init().webp(quality=quality)
+
+        # Clean file
+        file.clean()
+
+        # Return plain file
+        return FileResponse(path)#, media_type="image/webp")
+
+    @staticmethod
     def size(url, size):
         # Clean files
         Router.clean()
