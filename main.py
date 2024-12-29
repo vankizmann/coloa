@@ -1,5 +1,6 @@
 from typing import List, Union
 from fastapi import FastAPI, Query, UploadFile
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from lib.router import Router
 
@@ -38,3 +39,6 @@ def route_crop(url: Union[str], quality: Union[int, None] = 100):
 @app.post('/webp')
 def route_crop(file: UploadFile, quality: Union[int, None] = 100):
     return Router.webp(file, quality)
+    
+app.mount("/static", StaticFiles(directory="static"), name="static")
+

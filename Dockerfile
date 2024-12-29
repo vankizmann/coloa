@@ -1,13 +1,27 @@
-# Use Python 3.11 as base image
-FROM python:3.11-slim
+# Use Python 3.9 as base image
+FROM python:3.8
 
 # Set the working directory in the container
 WORKDIR /data
 
-# Copy the current directory contents into the container at /app
-COPY . /data
+# Expose port
+EXPOSE 8000
 
-# Command to run the Python script
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+    libglib2.0-0
 
-CMD ["fastapi", "/data/main.py", "--port", "80"]
+# Clone repo into folder
+RUN git clone https://github.com/vankizmann/coloa.git .
+
+# Install yolov5 weights
+RUN git clone https://github.com/ultralytics/yolov5.git ./yolov5
+
+# Update pip
+RUN python -m pip install --upgrade pip
+
+# Install pip dependencies
+RUN pip install --upgrade --no-cache-dir -r requirements.txt
+
+# Run unvicorn
+CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"]

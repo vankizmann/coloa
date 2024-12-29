@@ -1,3 +1,5 @@
+
+
 # Coloa Image Resize/Crop/Focuspoint API with Compression and YOLOv5 Object Detection
 
 Start webserver with:
@@ -80,3 +82,17 @@ The get command returns a application/json with new Imageurls and focus point.
   "yolo": "http://...(landscape)"
 }
 ```
+
+## docker-compose.yaml
+
+```yaml
+version: "3.8"
+services:
+  coloa:
+    image: kizmann/coloa:latest
+    container_name: coloa
+    restart: always
+    ports:
+      - 8000:8000
+```
+
