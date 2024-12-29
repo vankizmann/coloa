@@ -87,6 +87,8 @@ services:
     restart: always
     ports:
       - 8000:8000
+    environment:
+      - APP_URL=https://myapp.com:8000
 ```
 
 ## Local install
