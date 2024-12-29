@@ -8,7 +8,7 @@ import time as time
 
 class Router:
 
-    url = 'https://coloa.vanki.de'
+    url = os.environ.get("APP_URL", "http://localhost:8000")
 
     @staticmethod
     def webp(url, quality):
@@ -131,8 +131,8 @@ class Router:
             result['urls'][key] = regex.sub('^.', Router.url, value)
 
         # Convert yolo path to url
-        if ( hasattr(result, 'yolo') ):
-            result['yolo'] = regex.sub('^.', ref, result['image'])
+        if ( 'yolo' in result ):
+            result['yolo'] = regex.sub('^.', Router.url, result['yolo'])
 
         # Set focus to result
         result['focus'] = { "x": focus[0], "y": focus[1]}

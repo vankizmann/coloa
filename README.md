@@ -2,13 +2,6 @@
 
 # Coloa Image Resize/Crop/Focuspoint API with Compression and YOLOv5 Object Detection
 
-Start webserver with:
-
-```uvicorn main:app --reload```
-<br>
-<br>
-# How use API:
-
 ### *http://127.0.0.1:8000/(crop|size)*
 The run command just returns a plain image with given query.
 <br>
@@ -94,5 +87,19 @@ services:
     restart: always
     ports:
       - 8000:8000
+```
+
+## Local install
+
+Install requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the application
+
+```bash
+uvicorn main:app --reload --port 8000
 ```
 
