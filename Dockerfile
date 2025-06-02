@@ -27,4 +27,4 @@ RUN python -m pip install --upgrade pip
 RUN pip install --upgrade --no-cache-dir -r requirements.txt
 
 # Run unvicorn
-CMD ["uvicorn", "main:app", "--worker", "2", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--workers", "2", "--host", "0.0.0.0", "--port", "8000"]
